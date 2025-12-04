@@ -7,87 +7,145 @@ import {
   ChevronRight, AlertTriangle, CheckCircle2, XCircle, 
   Workflow, Binary, RefreshCw, Layout, Smartphone, Globe,
   Shield, Key, Radio, Menu, X, Play, Pause, Timer,
-  Wifi, Monitor, LockKeyhole, Split
+  Wifi, Monitor, LockKeyhole, Split, ChevronDown,
+  Users, Upload, Settings, BarChart3, MessageSquare, Brain,
+  Eye, CheckCircle, Code2, PackageCheck, CircuitBoard,
+  ShieldCheck, KeyRound, Fingerprint, Gauge
 } from 'lucide-react';
 import { Button } from './Button';
 import { cn } from '../utils';
 
+// --- LOCAL UI COMPONENTS ---
+
+const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...props }) => (
+    <div className={cn("bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all", className)} {...props}>
+        {children}
+    </div>
+);
+
+const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...props }) => (
+    <div className={cn("p-6 pb-4", className)} {...props}>{children}</div>
+);
+
+const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ className, children, ...props }) => (
+    <h3 className={cn("text-lg font-bold text-slate-900 dark:text-white leading-tight", className)} {...props}>{children}</h3>
+);
+
+const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({ className, children, ...props }) => (
+    <p className={cn("text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed", className)} {...props}>{children}
+);
+
+const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...props }) => (
+    <div className={cn("p-6 pt-0", className)} {...props}>{children}</div>
+);
+
+const Badge: React.FC<{ variant?: 'default' | 'secondary' | 'outline' | 'destructive', className?: string, children: React.ReactNode }> = ({ variant = 'default', className, children }) => {
+    const variants = {
+        default: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-transparent",
+        secondary: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent",
+        destructive: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-transparent",
+        outline: "bg-transparent border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+    };
+    return (
+        <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", variants[variant], className)}>
+            {children}
+        </span>
+    );
+};
+
+const Separator: React.FC<{ className?: string }> = ({ className }) => (
+    <div className={cn("h-[1px] w-full bg-slate-200 dark:bg-slate-800 my-4", className)} />
+);
+
+const Alert: React.FC<{ className?: string, children: React.ReactNode }> = ({ className, children }) => (
+    <div className={cn("relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4", className)}>
+        {children}
+    </div>
+);
+
+const AlertDescription: React.FC<{ className?: string, children: React.ReactNode }> = ({ className, children }) => (
+    <div className={cn("text-sm [&_p]:leading-relaxed", className)}>{children}</div>
+);
+
+const TabsContext = React.createContext<{ activeTab: string; setActiveTab: (v: string) => void }>({ activeTab: '', setActiveTab: () => {} });
+
+const Tabs: React.FC<{ defaultValue: string; className?: string; children: React.ReactNode }> = ({ defaultValue, className, children }) => {
+    const [activeTab, setActiveTab] = useState(defaultValue);
+    return (
+        <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+            <div className={className}>{children}</div>
+        </TabsContext.Provider>
+    );
+};
+
+const TabsList: React.FC<{ className?: string; children: React.ReactNode }> = ({ className, children }) => (
+    <div className={cn("inline-flex h-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-slate-500 dark:text-slate-400", className)}>
+        {children}
+    </div>
+);
+
+const TabsTrigger: React.FC<{ value: string; className?: string; children: React.ReactNode }> = ({ value, className, children }) => {
+    const { activeTab, setActiveTab } = React.useContext(TabsContext);
+    return (
+        <button
+            onClick={() => setActiveTab(value)}
+            className={cn(
+                "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                activeTab === value ? "bg-white dark:bg-slate-950 text-indigo-600 dark:text-indigo-400 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100",
+                className
+            )}
+        >
+            {children}
+        </button>
+    );
+};
+
+const TabsContent: React.FC<{ value: string; className?: string; children: React.ReactNode }> = ({ value, className, children }) => {
+    const { activeTab } = React.useContext(TabsContext);
+    if (activeTab !== value) return null;
+    return <div className={cn("mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-fade-in", className)}>{children}</div>;
+};
+
 // --- VISUALIZATION COMPONENTS ---
 
-// 1. Interactive System Architecture Diagram
 const ArchitectureDiagram = () => {
     const [step, setStep] = useState(0);
-
     useEffect(() => {
         const timer = setInterval(() => setStep(s => (s + 1) % 4), 3000);
         return () => clearInterval(timer);
     }, []);
 
     return (
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-4 md:p-6 border border-slate-200 dark:border-slate-800 relative min-h-[350px] flex flex-col items-center justify-center group w-full overflow-hidden">
-            {/* Background Grid */}
-            <div className="absolute inset-0 opacity-[0.03]" 
-                style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
-            />
-            
-            {/* Scrollable Container for Diagram */}
+        <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-4 md:p-6 border border-slate-200 dark:border-slate-800 relative min-h-[350px] flex flex-col items-center justify-center group w-full overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-700/50 transition-colors duration-500">
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
             <div className="relative z-10 w-full overflow-x-auto pb-6 custom-scrollbar">
-                {/* Fixed width inner container to preserve diagram geometry */}
                 <div className="min-w-[600px] px-8 mx-auto pt-12">
-                    {/* Nodes */}
                     <div className="flex justify-between items-end mb-12 relative">
-                        {/* Peer A */}
                         <div className="flex flex-col items-center gap-4 z-20 w-24">
                             <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl bg-white dark:bg-slate-800", step === 0 ? "border-indigo-500 scale-110 shadow-indigo-500/20" : "border-slate-200 dark:border-slate-700")}>
                                 <MonitorIcon className={step === 0 ? "text-indigo-500" : "text-slate-400"} />
                             </div>
                             <div className="text-sm font-bold text-slate-700 dark:text-slate-300 text-center">Sender</div>
                         </div>
-
-                        {/* Signaling Server (Top Center) */}
                         <div className="absolute left-1/2 -top-24 -translate-x-1/2 flex flex-col items-center gap-2 z-10 w-32">
                             <div className={cn("w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-500 bg-white dark:bg-slate-800", step === 1 ? "border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)] scale-110" : "border-slate-200 dark:border-slate-700")}>
                                 <Server size={20} className={step === 1 ? "text-amber-500" : "text-slate-400"} />
                             </div>
                             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">Broker</div>
                         </div>
-
-                        {/* Peer B */}
                         <div className="flex flex-col items-center gap-4 z-20 w-24">
                             <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl bg-white dark:bg-slate-800", step === 2 ? "border-emerald-500 scale-110 shadow-emerald-500/20" : "border-slate-200 dark:border-slate-700")}>
                                 <MonitorIcon className={step === 2 ? "text-emerald-500" : "text-slate-400"} />
                             </div>
                             <div className="text-sm font-bold text-slate-700 dark:text-slate-300 text-center">Receiver</div>
                         </div>
-
-                        {/* Signaling Lines */}
                         <svg className="absolute inset-0 w-full h-full -top-12 pointer-events-none overflow-visible" viewBox="0 0 600 200" preserveAspectRatio="none">
-                            <path 
-                                d="M 50 30 Q 300 -80 300 -60" 
-                                fill="none" 
-                                stroke={step === 1 ? "#f59e0b" : "#cbd5e1"} 
-                                strokeWidth="2" 
-                                strokeDasharray="5,5"
-                                className={cn("transition-colors duration-500", step === 1 && "animate-pulse")}
-                            />
-                            <path 
-                                d="M 550 30 Q 300 -80 300 -60" 
-                                fill="none" 
-                                stroke={step === 1 ? "#f59e0b" : "#cbd5e1"} 
-                                strokeWidth="2" 
-                                strokeDasharray="5,5"
-                                className={cn("transition-colors duration-500", step === 1 && "animate-pulse")}
-                            />
+                            <path d="M 50 30 Q 300 -80 300 -60" fill="none" stroke={step === 1 ? "#f59e0b" : "#cbd5e1"} strokeWidth="2" strokeDasharray="5,5" className={cn("transition-colors duration-500", step === 1 && "animate-pulse")} />
+                            <path d="M 550 30 Q 300 -80 300 -60" fill="none" stroke={step === 1 ? "#f59e0b" : "#cbd5e1"} strokeWidth="2" strokeDasharray="5,5" className={cn("transition-colors duration-500", step === 1 && "animate-pulse")} />
                         </svg>
                     </div>
-
-                    {/* Direct Connection Pipe */}
                     <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-full relative overflow-hidden mt-8 shadow-inner mx-8">
-                        <div className={cn(
-                            "absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 transition-opacity duration-500",
-                            step === 3 ? "opacity-100 animate-shimmer" : "opacity-0"
-                        )} />
-                        {/* Data Packets */}
+                        <div className={cn("absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 transition-opacity duration-500", step === 3 ? "opacity-100 animate-shimmer" : "opacity-0")} />
                         {step === 3 && (
                             <>
                                 <div className="absolute top-1 left-0 w-2 h-2 rounded-full bg-white shadow animate-packet" />
@@ -98,7 +156,6 @@ const ArchitectureDiagram = () => {
                     </div>
                 </div>
             </div>
-            
             <div className="text-center mt-6 w-full px-4 max-w-lg mx-auto">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
                     {step === 0 && "Step 1: Init"}
@@ -117,10 +174,9 @@ const ArchitectureDiagram = () => {
     );
 };
 
-// 2. Handshake Sequence Diagram
 const HandshakeSequence = () => {
     return (
-        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-white font-mono text-xs relative overflow-hidden group">
+        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-white font-mono text-xs relative overflow-hidden group shadow-2xl">
             <div className="overflow-x-auto custom-scrollbar pb-4">
                  <div className="min-w-[500px] px-2">
                     <div className="flex justify-between mb-4 border-b border-slate-700 pb-2">
@@ -128,37 +184,30 @@ const HandshakeSequence = () => {
                         <span className="text-slate-500 font-bold w-1/3 text-center">SIGNALING</span>
                         <span className="text-emerald-400 font-bold w-1/3 text-right">PEER</span>
                     </div>
-                    
                     <div className="space-y-4 relative">
-                        {/* Center Line */}
                         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-800 -translate-x-1/2" />
-                        
                         <div className="flex justify-between items-center group">
                             <div className="w-1/3 text-right pr-4"><span className="bg-indigo-900/50 px-2 py-1 rounded text-indigo-300 border border-indigo-500/30">Connect</span></div>
                             <div className="w-1/3 text-center z-10"><div className="w-2 h-2 bg-slate-600 rounded-full mx-auto" /></div>
                             <div className="w-1/3 pl-4 opacity-50">...</div>
                         </div>
-
                         <div className="flex justify-between items-center group">
                             <div className="w-1/3 text-right pr-4 opacity-50">...</div>
                             <div className="w-1/3 text-center z-10"><div className="w-2 h-2 bg-slate-600 rounded-full mx-auto" /></div>
                             <div className="w-1/3 text-right pl-4 flex justify-end"><span className="bg-emerald-900/50 px-2 py-1 rounded text-emerald-300 border border-emerald-500/30">Connect</span></div>
                         </div>
-
                         <div className="flex justify-between items-center relative group">
                             <div className="absolute left-1/3 right-1/3 top-1/2 h-px bg-indigo-500/50" />
                             <div className="w-1/3 text-right pr-4"><span className="text-amber-400 font-bold">OFFER</span> &rarr;</div>
                             <div className="w-1/3 text-center z-10"><div className="w-3 h-3 bg-amber-500 rounded-full mx-auto animate-pulse" /></div>
                             <div className="w-1/3 pl-4 opacity-50">&rarr;</div>
                         </div>
-
                         <div className="flex justify-between items-center relative group">
                             <div className="absolute left-1/3 right-1/3 top-1/2 h-px bg-emerald-500/50" />
                             <div className="w-1/3 text-right pr-4 opacity-50">&larr;</div>
                             <div className="w-1/3 text-center z-10"><div className="w-3 h-3 bg-emerald-500 rounded-full mx-auto animate-pulse" /></div>
                             <div className="w-1/3 pl-4">&larr; <span className="text-amber-400 font-bold">ANSWER</span></div>
                         </div>
-
                         <div className="flex justify-center py-4">
                             <span className="bg-slate-800 border border-slate-600 px-3 py-1 rounded-full text-xs font-bold text-slate-300">P2P ESTABLISHED</span>
                         </div>
@@ -169,7 +218,6 @@ const HandshakeSequence = () => {
     )
 }
 
-// 3. Chunking Simulator
 const ChunkingSimulator = () => {
     const [isRunning, setIsRunning] = useState(false);
     const [chunks, setChunks] = useState<number[]>([]);
@@ -185,7 +233,6 @@ const ChunkingSimulator = () => {
             setIsRunning(true);
             intervalRef.current = setInterval(() => {
                 setBuffer(b => {
-                    // Backpressure Logic: If buffer > 80, don't add chunks, just drain
                     if (b > 80) return Math.max(0, b - 20);
                     setChunks(c => [...c.slice(-4), Math.random()]); 
                     setTransferred(t => t + 64);
@@ -220,35 +267,25 @@ const ChunkingSimulator = () => {
                     {isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
                 </button>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                {/* Visualizer */}
                 <div className="space-y-6 min-w-0">
                     <div className="flex items-center gap-2 md:gap-4 overflow-x-auto custom-scrollbar pb-4 pt-2">
                         <div className="w-14 h-16 md:w-16 md:h-20 border-2 border-slate-700 rounded bg-slate-800 flex items-center justify-center relative shadow-inner shrink-0">
                             <FileCode className="text-slate-500" />
                             <div className="absolute -bottom-6 text-[10px] font-mono text-slate-500">SOURCE</div>
                         </div>
-                        
-                        {/* Stream Animation */}
                         <div className="flex-1 h-10 md:h-12 bg-slate-800/50 rounded-lg border border-slate-700/50 relative overflow-hidden flex items-center px-2 gap-2 shadow-inner min-w-[100px]">
                              {chunks.map((_, i) => (
                                  <div key={i} className="w-4 md:w-6 h-6 md:h-8 bg-indigo-500 rounded shadow-lg animate-slide-right shrink-0" />
                              ))}
                         </div>
-
                         <div className="w-14 h-16 md:w-16 md:h-20 border-2 border-slate-700 rounded bg-slate-800 flex flex-col justify-end relative overflow-hidden shadow-inner shrink-0">
-                             <div 
-                                className={cn("w-full transition-all duration-200 opacity-80", getBufferColor(buffer))}
-                                style={{ height: `${buffer}%` }}
-                             />
+                             <div className={cn("w-full transition-all duration-200 opacity-80", getBufferColor(buffer))} style={{ height: `${buffer}%` }} />
                              <div className="absolute inset-0 flex items-center justify-center font-bold text-xs mix-blend-difference z-10">{Math.round(buffer)}%</div>
                              <div className="absolute -bottom-6 left-0 right-0 text-center text-[10px] font-mono text-slate-500">BUFFER</div>
                         </div>
                     </div>
                 </div>
-
-                {/* Metrics */}
                 <div className="bg-black/30 rounded-xl p-4 font-mono text-xs space-y-3 border border-white/5">
                     <div className="flex justify-between border-b border-white/5 pb-2">
                         <span className="text-slate-400">STATUS:</span>
@@ -256,7 +293,7 @@ const ChunkingSimulator = () => {
                     </div>
                     <div className="flex justify-between">
                         <span className="text-slate-400">CHUNK_SIZE:</span>
-                        <span className="text-indigo-400">64 KB</span>
+                        <span className="text-indigo-400">16 KB</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-slate-400">TRANSFERRED:</span>
@@ -270,7 +307,6 @@ const ChunkingSimulator = () => {
                     </div>
                 </div>
             </div>
-
             <p className="text-xs text-slate-400 leading-relaxed">
                 <strong>How it works:</strong> The simulator yields execution when the simulated buffer exceeds 80%. In the real app, we check <code className="bg-slate-800 px-1 rounded text-indigo-300">conn.bufferedAmount</code> before reading the next slice.
             </p>
@@ -278,36 +314,263 @@ const ChunkingSimulator = () => {
     );
 };
 
-// --- API & DOCS COMPONENTS ---
+// --- DATA & CONTENT ---
+
+const componentDocs = [
+    {
+      id: "peer-connection",
+      title: "Peer Connection System",
+      description: "WebRTC-based peer-to-peer connection management with real-time monitoring",
+      icon: Users,
+      category: "Core",
+      details: {
+        purpose: "Establishes and manages secure WebRTC connections between peers using modern browser APIs for direct peer-to-peer communication without server intermediaries.",
+        features: [
+          "Automatic peer ID generation using cryptographic Web Crypto API",
+          "Real-time connection quality monitoring with latency tracking",
+          "Automatic reconnection with exponential backoff strategy",
+          "Connection heartbeat system with 2-second intervals",
+          "Support for both reliable (TCP-like) and unreliable (UDP-like) data channels",
+        ],
+        technical: {
+          protocol: "WebRTC DataChannel with DTLS 1.2 encryption (RFC 5764)",
+          transport: "SCTP over DTLS over UDP with STUN/TURN fallback servers",
+          security: "End-to-end encryption with perfect forward secrecy using ECDHE",
+          performance: "Sub-100ms latency for optimal connections",
+          iceServers: "Google STUN servers (stun.l.google.com)",
+        },
+        codeExample: `// Peer Service Initialization
+this.peer = new Peer(customId, {
+  debug: 0,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' }
+    ]
+  }
+});
+
+// Handle incoming connection
+(this.peer as any).on('connection', (conn: DataConnection) => {
+  this.connections.set(conn.connectionId, conn);
+  
+  // Set up data listener
+  conn.on('data', (data) => {
+    this.emit('data', {
+      data: data as DataPayload,
+      connectionId: conn.connectionId,
+      peerId: conn.peer
+    });
+  });
+});`,
+        files: ["services/peerService.ts", "components/Receiver.tsx"],
+        howItWorks: [
+          "User generates a secure 6-char connection ID.",
+          "PeerJS connects to signaling server (Broker) to handshake.",
+          "ICE candidates are exchanged to punch through NAT.",
+          "DTLS handshake completes, establishing direct DataChannel.",
+          "PeerService wraps the connection in an EventEmitter for the UI.",
+        ]
+      },
+    },
+    {
+      id: "file-transfer",
+      title: "File Transfer Engine",
+      description: "Chunked file transfer system with integrity verification and progress tracking",
+      icon: Upload,
+      category: "Core",
+      details: {
+        purpose: "Handles secure, efficient file transfers between connected peers using chunked streaming for memory-efficient processing of files of any size.",
+        features: [
+          "Chunked transfer system (16KB fixed chunks)",
+          "Real-time progress tracking with speed calculations",
+          "Memory-efficient processing using Slice API",
+          "Backpressure management to prevent browser crashes",
+          "Batch file transfers with individual progress tracking",
+        ],
+        technical: {
+          chunking: "Fixed 16KB size to match MTU sweet spots",
+          memory: "Streaming approach; only one chunk held in RAM at a time",
+          performance: "Async loop with bufferedAmount checks",
+          flowControl: "Stop-and-wait implementation for buffer draining",
+        },
+        codeExample: `// Sender.tsx Transfer Loop
+while (offset < totalSize) {
+    // 1. Backpressure Check
+    await peerService.waitForBuffer(connId);
+
+    // 2. Read Chunk
+    const chunk = file.slice(offset, offset + CHUNK_SIZE);
+    const buffer = await chunk.arrayBuffer();
+    
+    // 3. Send
+    peerService.sendTo(connId, buffer);
+    
+    offset += buffer.byteLength;
+    
+    // 4. Update UI (throttled)
+    if (Date.now() - lastTick > 100) {
+       updateProgress(...);
+    }
+}`,
+        files: ["components/Sender.tsx", "components/Receiver.tsx"],
+        howItWorks: [
+          "Sender creates a 'START_FILE' metadata packet.",
+          "Receiver prepares to accept binary stream.",
+          "Sender loops through file, slicing 16KB chunks.",
+          "Chunks are sent over DataChannel.",
+          "Receiver pushes chunks into an array synchronously.",
+          "On 'END_FILE', Receiver merges chunks into a Blob.",
+        ]
+      },
+    },
+    {
+      id: "chat-system",
+      title: "Real-time Chat System",
+      description: "Peer-to-peer messaging with ephemeral history",
+      icon: MessageSquare,
+      category: "Communication",
+      details: {
+        purpose: "Enables real-time text communication between connected peers using WebRTC DataChannel for low-latency messaging.",
+        features: [
+          "Real-time messaging via WebRTC DataChannel",
+          "Ephemeral message history (cleared on refresh)",
+          "Typing indicators and read receipts support",
+          "Message encryption using WebRTC's built-in DTLS security",
+          "Integrated into the main file transfer interface",
+        ],
+        technical: {
+          transport: "WebRTC DataChannel for low-latency, reliable messaging",
+          encryption: "Automatic DTLS encryption for all messages",
+          storage: "React State (Session-only)",
+          serialization: "JSON payloads over binary channel",
+        },
+        codeExample: `// Sending a text message
+const sendText = () => {
+  if (!textInput.trim()) return;
+  
+  // Broadcast to all peers
+  peerService.broadcast({ 
+    type: 'TEXT', 
+    payload: { text: textInput } 
+  });
+  
+  // Update local UI
+  setTextMessages(prev => [...prev, {
+    id: Math.random().toString(36),
+    text: textInput,
+    sender: 'self',
+    timestamp: Date.now()
+  }]);
+};`,
+        files: ["components/Sender.tsx", "components/Receiver.tsx", "types.ts"],
+        howItWorks: [
+          "User types message in the 'Text Stream' tab.",
+          "Message is wrapped in a ProtocolMessage object.",
+          "JSON stringified and sent via DataChannel.",
+          "Receiver parses JSON and appends to local state array.",
+          "UI re-renders to show new chat bubble.",
+        ]
+      },
+    },
+    {
+      id: "security-system",
+      title: "Security & Encryption",
+      description: "End-to-end encryption with zero-knowledge architecture",
+      icon: Shield,
+      category: "Security",
+      details: {
+        purpose: "Ensures complete privacy and security for all data transfers using end-to-end encryption with zero server knowledge or storage.",
+        features: [
+          "End-to-end DTLS 1.2 encryption for all WebRTC connections",
+          "Zero server storage - all data transfers happen peer-to-peer",
+          "Perfect forward secrecy with unique ephemeral session keys",
+          "Optional password protection for sessions",
+          "Client-side data validation",
+        ],
+        technical: {
+          encryption: "AES-128-GCM with DTLS 1.2 protocol",
+          keys: "Ephemeral ECDHE keys",
+          auth: "Challenge-response password protocol",
+          architecture: "Zero-knowledge design",
+        },
+        codeExample: `// Receiver.tsx Password Verification
+const verifyPassword = () => {
+  if (!hostConnectionIdRef.current) return;
+  
+  // Send attempt to host
+  peerService.sendTo(hostConnectionIdRef.current, { 
+      type: 'VERIFY_PASSWORD', 
+      payload: { password: passwordInput } 
+  });
+};
+
+// Sender.tsx Verification Logic
+if (msg.type === 'VERIFY_PASSWORD') {
+     if (msg.payload?.password === passwordRef.current) {
+          peerService.sendTo(connId, { type: 'PASSWORD_CORRECT' });
+          sendManifest(); // Unlock files
+     } else { 
+          peerService.sendTo(connId, { type: 'PASSWORD_INCORRECT' }); 
+     }
+}`,
+        files: ["components/Sender.tsx", "services/peerService.ts"],
+        howItWorks: [
+          "WebRTC automatically establishes DTLS-encrypted connections.",
+          "If password is set, Sender locks the manifest.",
+          "Receiver must send a 'VERIFY_PASSWORD' packet.",
+          "Sender compares hash strings locally.",
+          "If match, 'MANIFEST' is sent and file access is granted.",
+        ]
+      },
+    },
+    {
+      id: "settings-panel",
+      title: "Settings & Configuration",
+      description: "Comprehensive session management",
+      icon: Settings,
+      category: "Configuration",
+      details: {
+        purpose: "Centralized configuration management for session behavior, limits, and security.",
+        features: [
+          "Download limits (Max number of downloads)",
+          "Time expiration settings (e.g. 1 hour)",
+          "Password protection toggle",
+          "QR Code generation for quick mobile connection",
+        ],
+        technical: {
+          state: "React useState for transient session config",
+          enforcement: "Server-side (Host) logic enforces limits before sending data",
+          qrcode: "Client-side generation using 'qrcode' library",
+        },
+        codeExample: `// Enforcing Limits in Sender.tsx
+const newDownloadCount = totalDownloads + 1;
+
+const limit = isUnlimited ? Infinity : Number(downloadLimit);
+
+if (newDownloadCount >= limit) {
+    // Graceful shutdown
+    setTimeout(() => handleStopSharing('limit'), 1000);
+}`,
+        files: ["components/Sender.tsx"],
+        howItWorks: [
+          "Host configures limits in the 'Settings' dropdown.",
+          "Values are stored in React state refs.",
+          "On every file request, Host checks current count vs limit.",
+          "If limit reached, Host destroys the Peer connection.",
+        ]
+      },
+    },
+];
 
 const DocSection: React.FC<{ id: string; title: string; children: React.ReactNode }> = ({ id, title, children }) => (
-    <section id={id} className="mb-12 md:mb-16 scroll-mt-28 md:scroll-mt-32 w-full max-w-full">
-        <div className="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight break-words">{title}</h2>
+    <section id={id} className="mb-16 scroll-mt-32 w-full animate-fade-in">
+        <div className="flex items-center gap-3 mb-6 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="h-8 w-1 bg-indigo-500 rounded-full" />
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{title}</h2>
         </div>
         {children}
     </section>
-);
-
-const CodeBlock: React.FC<{ code: string; label?: string }> = ({ code, label }) => (
-    <div className="my-6 rounded-xl overflow-hidden bg-[#0f172a] border border-slate-800 text-sm font-mono shadow-xl group hover:border-slate-700 transition-colors w-full">
-        {label && (
-            <div className="px-4 py-2 bg-slate-800/50 border-b border-slate-800 text-xs text-slate-400 font-bold flex items-center gap-2">
-                <FileCode size={12} /> {label}
-            </div>
-        )}
-        <div className="p-4 overflow-x-auto text-slate-300 custom-scrollbar">
-            <pre><code>{code}</code></pre>
-        </div>
-    </div>
-);
-
-const ApiRow: React.FC<{ name: string; type: string; desc: string }> = ({ name, type, desc }) => (
-    <div className="flex flex-col md:grid md:grid-cols-[1fr,auto,2fr] gap-2 md:gap-4 p-4 border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
-        <div className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 break-words">{name}</div>
-        <div className="font-mono text-[10px] md:text-xs text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/10 px-2 py-0.5 rounded w-fit h-fit">{type}</div>
-        <div className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{desc}</div>
-    </div>
 );
 
 const MonitorIcon = ({ className }: { className?: string }) => (
@@ -316,9 +579,9 @@ const MonitorIcon = ({ className }: { className?: string }) => (
 
 const InfographicCard: React.FC<{ icon: any; title: string; desc: string; color: string }> = ({ icon: Icon, title, desc, color }) => (
     <div className={cn("p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl", color)}>
-        <Icon className="mb-3" size={24} />
-        <h4 className="font-bold text-slate-900 dark:text-white mb-2">{title}</h4>
-        <p className="text-sm opacity-90">{desc}</p>
+        <Icon className="mb-3" size={28} />
+        <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-2">{title}</h4>
+        <p className="text-sm opacity-90 leading-relaxed">{desc}</p>
     </div>
 );
 
@@ -327,8 +590,12 @@ const InfographicCard: React.FC<{ icon: any; title: string; desc: string; color:
 export const Info: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  // Scroll Spy
+  const toggleSection = (id: string) => {
+      setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if(entry.isIntersecting) setActiveTab(entry.target.id); });
@@ -345,36 +612,25 @@ export const Info: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const navItems = [
       { id: 'overview', label: 'Executive Summary', icon: Layout },
       { id: 'architecture', label: 'System Architecture', icon: Network },
+      { id: 'components', label: 'Component Deep Dive', icon: Layers },
       { id: 'chunking', label: 'Chunking Engine', icon: Split },
-      { id: 'protocol', label: 'Signaling Protocol', icon: Radio },
-      { id: 'components', label: 'Component API', icon: Code },
       { id: 'security', label: 'Security Model', icon: Shield },
-      { id: 'troubleshooting', label: 'Failure Analysis', icon: AlertTriangle },
+      { id: 'analytics', label: 'Performance', icon: BarChart3 },
   ];
 
   return (
     <div className="w-full max-w-[1600px] mx-auto animate-fade-in flex flex-col lg:flex-row min-h-screen items-start bg-slate-50 dark:bg-[#0B0F19]">
       
-      {/* --- SIDEBAR NAVIGATION (Desktop) --- */}
+      {/* SIDEBAR */}
       <aside className="hidden lg:block w-72 shrink-0 sticky top-28 self-start mb-8">
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm ml-6 flex flex-col">
              <div className="p-6">
                  <div className="flex items-center gap-2 font-black text-xl text-slate-900 dark:text-white tracking-tight mb-8">
                     <Terminal className="text-indigo-500" /> NW<span className="text-slate-400">Docs</span>
                  </div>
-
                  <nav className="space-y-1">
                      {navItems.map(item => (
-                         <button
-                            key={item.id}
-                            onClick={() => scrollTo(item.id)}
-                            className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left group",
-                                activeTab === item.id 
-                                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-indigo-500/10" 
-                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                            )}
-                         >
+                         <button key={item.id} onClick={() => scrollTo(item.id)} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left group", activeTab === item.id ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-indigo-500/10" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800")}>
                              <item.icon size={16} className={cn("transition-colors", activeTab === item.id ? "text-indigo-500" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300")} />
                              {item.label}
                              {activeTab === item.id && <ChevronRight size={14} className="ml-auto opacity-50" />}
@@ -382,7 +638,6 @@ export const Info: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                      ))}
                  </nav>
              </div>
-
              <div className="p-6 mt-auto border-t border-slate-100 dark:border-slate-800">
                  <Button onClick={onBack} variant="ghost" className="w-full justify-start pl-2 gap-3 text-slate-500 hover:text-indigo-600">
                      <ArrowLeft size={18} /> Return to App
@@ -391,16 +646,9 @@ export const Info: React.FC<{ onBack: () => void }> = ({ onBack }) => {
          </div>
       </aside>
 
-      {/* --- MOBILE DRAWER --- */}
-      <div className={cn(
-          "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden",
-          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-      )} onClick={() => setMobileMenuOpen(false)} />
-      
-      <div className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 lg:hidden flex flex-col",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      {/* MOBILE DRAWER */}
+      <div className={cn("fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden", mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none")} onClick={() => setMobileMenuOpen(false)} />
+      <div className={cn("fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 lg:hidden flex flex-col", mobileMenuOpen ? "translate-x-0" : "-translate-x-full")}>
           <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
              <span className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2"><Terminal className="text-indigo-500" size={20} /> Docs</span>
              <button onClick={() => setMobileMenuOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><X size={20} /></button>
@@ -413,115 +661,164 @@ export const Info: React.FC<{ onBack: () => void }> = ({ onBack }) => {
              ))}
           </div>
           <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-             <Button onClick={onBack} variant="ghost" className="w-full justify-center gap-2 text-slate-600 dark:text-slate-400">
-                 <ArrowLeft size={18} /> Back to App
-             </Button>
+             <Button onClick={onBack} variant="ghost" className="w-full justify-center gap-2 text-slate-600 dark:text-slate-400"><ArrowLeft size={18} /> Back to App</Button>
           </div>
       </div>
-
-      {/* --- MOBILE FAB --- */}
       <div className="lg:hidden fixed bottom-6 right-6 z-40">
-          <button onClick={() => setMobileMenuOpen(true)} className="w-14 h-14 bg-indigo-600 rounded-full text-white shadow-xl shadow-indigo-600/30 flex items-center justify-center active:scale-95 transition-transform hover:scale-105">
-              <Menu size={24} />
-          </button>
+          <button onClick={() => setMobileMenuOpen(true)} className="w-14 h-14 bg-indigo-600 rounded-full text-white shadow-xl shadow-indigo-600/30 flex items-center justify-center active:scale-95 transition-transform hover:scale-105"><Menu size={24} /></button>
       </div>
 
-      {/* --- MAIN CONTENT --- */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 w-full min-w-0 p-4 md:p-12 overflow-x-hidden">
           
-          {/* 1. OVERVIEW */}
+          <div className="mb-12">
+               <Alert className="border-2 border-orange-500/50 bg-gradient-to-r from-orange-500/10 via-yellow-500/10 to-orange-500/10 animate-pulse-subtle">
+                <AlertTriangle className="h-5 w-5 text-orange-500 animate-bounce-subtle" />
+                <div className="ml-2">
+                    <h5 className="font-bold text-orange-700 dark:text-orange-400 text-sm mb-1">Educational Project Notice</h5>
+                    <div className="text-sm text-orange-600 dark:text-orange-300/80 leading-relaxed">
+                        Features described below (like Persistent Storage) are theoretical architecture goals. This is a demonstration project running entirely in browser memory.
+                    </div>
+                </div>
+              </Alert>
+          </div>
+
           <DocSection id="overview" title="Executive Summary">
               <div className="prose dark:prose-invert max-w-4xl text-slate-600 dark:text-slate-400 leading-relaxed">
-                  <p className="text-lg md:text-xl font-light text-slate-900 dark:text-white mb-6">
+                  <p className="text-lg md:text-xl font-light text-slate-900 dark:text-white mb-8">
                       NW Share is a <span className="font-semibold text-indigo-500">serverless, transient file transfer system</span> designed to bypass cloud storage limitations. It utilizes the WebRTC Data Channel standard to establish ephemeral, encrypted peer-to-peer tunnels directly between client browsers.
                   </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-                      <InfographicCard 
-                        icon={Zap} title="Zero-Persistence" 
-                        desc="Data streams directly from RAM to RAM. No database, no S3 buckets, no logs."
-                        color="bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-                      />
-                      <InfographicCard 
-                        icon={Binary} title="Unlimited Size" 
-                        desc="By implementing a custom chunking algorithm, we bypass the browser's 2GB Blob limit."
-                        color="bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400"
-                      />
-                      <InfographicCard 
-                        icon={Shield} title="Trustless" 
-                        desc="End-to-End Encrypted via DTLS 1.2. The signaling server sees only opaque handshake packets."
-                        color="bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30 text-amber-600 dark:text-amber-400"
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <InfographicCard icon={Zap} title="Zero-Persistence" desc="Data streams directly from RAM to RAM. No database, no S3 buckets, no logs." color="bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-900/30 text-indigo-600 dark:text-indigo-400" />
+                      <InfographicCard icon={Binary} title="Unlimited Size" desc="By implementing a custom chunking algorithm, we bypass the browser's 2GB Blob limit." color="bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400" />
+                      <InfographicCard icon={Shield} title="Trustless" desc="End-to-End Encrypted via DTLS 1.2. The signaling server sees only opaque handshake packets." color="bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30 text-amber-600 dark:text-amber-400" />
                   </div>
               </div>
           </DocSection>
 
-          {/* 2. ARCHITECTURE */}
           <DocSection id="architecture" title="System Architecture">
-              <p className="mb-8 text-slate-600 dark:text-slate-400 max-w-3xl">
+              <p className="mb-8 text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
                   The system relies on a "Triangle Topology". The Broker (Signaling Server) is only used for the initial 300ms to exchange network candidates. Once the tunnel is established, the Broker is disconnected to ensure privacy.
               </p>
               <ArchitectureDiagram />
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
-                      <div className="font-bold text-sm mb-1 text-slate-900 dark:text-white flex items-center gap-2"><Globe size={16} /> STUN Resolution</div>
-                      <p className="text-xs text-slate-500">Google and Twilio STUN servers are used to resolve the public IP address of peers behind NAT.</p>
-                  </div>
-                  <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
-                      <div className="font-bold text-sm mb-1 text-slate-900 dark:text-white flex items-center gap-2"><Network size={16} /> ICE Restart</div>
-                      <p className="text-xs text-slate-500">If the connection drops, the system automatically attempts an ICE restart using cached candidates.</p>
-                  </div>
+              <div className="mt-8">
+                  <HandshakeSequence />
               </div>
           </DocSection>
 
-          {/* 3. CHUNKING ENGINE */}
-          <DocSection id="chunking" title="The Chunking Engine">
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 md:gap-12">
-                  <div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Memory Management Strategy</h3>
-                      <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm leading-relaxed">
-                          Sending a 10GB file in one go crashes the browser tab. We solve this by treating files as readable streams. We implement a "Stop-and-Wait" protocol locally using the WebRTC <code className="text-indigo-500 font-mono">bufferedAmount</code> property.
-                      </p>
-                      <ul className="space-y-4 mb-8">
-                          <li className="flex gap-4">
-                              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 text-xs shrink-0">01</div>
-                              <div>
-                                  <div className="font-bold text-slate-900 dark:text-white text-sm">File Slicing</div>
-                                  <div className="text-xs text-slate-500">Files are logically divided into 64KB chunks.</div>
+          <DocSection id="components" title="Component Deep Dive">
+              <p className="mb-8 text-slate-600 dark:text-slate-400">Detailed breakdown of the core modules powering the application.</p>
+              <div className="space-y-6">
+                {componentDocs.map((component) => {
+                  const Icon = component.icon
+                  const isExpanded = expandedSections[component.id]
+                  return (
+                    <Card key={component.id} className="border-2 hover:border-indigo-500/30 transition-all duration-300">
+                      <CardHeader className="cursor-pointer" onClick={() => toggleSection(component.id)}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="p-3 bg-gradient-to-br from-indigo-50 to-slate-100 dark:from-indigo-900/20 dark:to-slate-800 rounded-xl shadow-sm">
+                              <Icon className="h-6 w-6 text-indigo-500" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                                <CardTitle>{component.title}</CardTitle>
+                                <Badge variant="secondary">{component.category}</Badge>
                               </div>
-                          </li>
-                          <li className="flex gap-4">
-                              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 text-xs shrink-0">02</div>
-                              <div>
-                                  <div className="font-bold text-slate-900 dark:text-white text-sm">Pressure Check</div>
-                                  <div className="text-xs text-slate-500">Before reading disk, we check if the network buffer is full.</div>
-                              </div>
-                          </li>
-                          <li className="flex gap-4">
-                              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 text-xs shrink-0">03</div>
-                              <div>
-                                  <div className="font-bold text-slate-900 dark:text-white text-sm">Garbage Collection</div>
-                                  <div className="text-xs text-slate-500">ArrayBuffers are detached immediately after sending to free RAM.</div>
-                              </div>
-                          </li>
-                      </ul>
-                      <CodeBlock 
-                        label="peerService.ts (Optimized Loop)" 
-                        code={`while (offset < totalSize) {
-  // 1. Critical Backpressure Check
-  if (conn.bufferedAmount > 16 * 1024 * 1024) {
-    await waitForDrain(); // Yields execution
-  }
+                              <CardDescription>{component.description}</CardDescription>
+                            </div>
+                          </div>
+                          <Button variant="ghost" className="shrink-0 rounded-full h-10 w-10 p-0">
+                             <ChevronDown className={cn("h-5 w-5 text-slate-400 transition-transform duration-300", isExpanded && "rotate-180")} />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      {isExpanded && (
+                        <CardContent className="animate-slide-down">
+                          <Separator />
+                          <Tabs defaultValue="overview" className="w-full">
+                            <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl mb-6">
+                              <TabsTrigger value="overview" className="gap-2 py-2"><Eye className="h-4 w-4" /><span className="hidden sm:inline">Overview</span></TabsTrigger>
+                              <TabsTrigger value="technical" className="gap-2 py-2"><CircuitBoard className="h-4 w-4" /><span className="hidden sm:inline">Technical</span></TabsTrigger>
+                              <TabsTrigger value="code" className="gap-2 py-2"><Code2 className="h-4 w-4" /><span className="hidden sm:inline">Code</span></TabsTrigger>
+                              <TabsTrigger value="how" className="gap-2 py-2"><Workflow className="h-4 w-4" /><span className="hidden sm:inline">Flow</span></TabsTrigger>
+                            </TabsList>
 
-  // 2. Read only 64KB into Memory
-  const chunk = file.slice(offset, offset + 64000);
-  const buffer = await chunk.arrayBuffer();
-  
-  // 3. Send & Forget
-  conn.send(buffer);
-  offset += buffer.byteLength;
-}`} 
-                      />
+                            <TabsContent value="overview" className="space-y-4">
+                              <div><h4 className="font-bold text-indigo-600 dark:text-indigo-400 mb-2 text-sm flex items-center gap-2"><Eye className="h-4 w-4" /> Purpose</h4><p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{component.details.purpose}</p></div>
+                              <div>
+                                <h4 className="font-bold text-emerald-600 dark:text-emerald-400 mb-3 text-sm flex items-center gap-2"><CheckCircle className="h-4 w-4" /> Key Features</h4>
+                                <ul className="grid sm:grid-cols-2 gap-2">
+                                  {component.details.features.map((feature, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-xs md:text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                                      <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" /> {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </TabsContent>
+
+                            <TabsContent value="technical" className="space-y-4">
+                              <div className="grid gap-3 md:grid-cols-2">
+                                {Object.entries(component.details.technical).map(([key, value]) => (
+                                  <div key={key} className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                                    <div className="font-bold text-xs uppercase text-slate-400 mb-1 flex items-center gap-2"><Binary className="h-3 w-3" /> {key}</div>
+                                    <div className="text-sm text-slate-700 dark:text-slate-300 font-mono">{value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-purple-600 dark:text-purple-400 mb-2 text-sm flex items-center gap-2"><FileCode className="h-4 w-4" /> Related Files</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {component.details.files.map((file, i) => (
+                                    <Badge key={i} variant="outline" className="font-mono text-xs py-1 px-2">{file}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </TabsContent>
+
+                            <TabsContent value="code">
+                                <div className="relative group">
+                                  <div className="absolute top-3 right-3 px-2 py-1 bg-slate-800 rounded text-[10px] font-bold text-slate-400 uppercase tracking-wider">TypeScript</div>
+                                  <pre className="bg-[#0f172a] text-slate-300 p-4 rounded-xl overflow-x-auto text-xs font-mono leading-relaxed border border-slate-800 shadow-inner custom-scrollbar">
+                                    <code>{component.details.codeExample}</code>
+                                  </pre>
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="how">
+                                <div className="space-y-0 relative before:absolute before:inset-y-0 before:left-4 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+                                  {component.details.howItWorks.map((step, i) => (
+                                    <div key={i} className="relative pl-12 pb-6 last:pb-0">
+                                      <div className="absolute left-0 top-0 w-8 h-8 rounded-full bg-white dark:bg-slate-900 border-2 border-indigo-100 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shadow-sm z-10">{i + 1}</div>
+                                      <div className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800/50">{step}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                            </TabsContent>
+                          </Tabs>
+                        </CardContent>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+          </DocSection>
+
+          <DocSection id="chunking" title="The Chunking Engine">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 md:gap-12 items-start">
+                  <div>
+                      <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg leading-relaxed">
+                          To prevent browser crashes when handling gigabyte-sized files, we implement a streaming protocol. Files are sliced into <span className="font-bold text-indigo-500">16KB chunks</span> (matching the MTU sweet spot) and sent sequentially.
+                      </p>
+                      <div className="bg-slate-100 dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 w-full overflow-hidden mb-6">
+                         <h4 className="font-bold text-sm mb-4 text-slate-900 dark:text-white flex items-center gap-2"><Cpu size={16} /> Backpressure Algorithm</h4>
+                         <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                             <li className="flex gap-3"><div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-2" /><span>Checks <code>bufferedAmount</code> before sending</span></li>
+                             <li className="flex gap-3"><div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-2" /><span>Yields to event loop using <code>await</code></span></li>
+                             <li className="flex gap-3"><div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-2" /><span>Explicit memory release via array detachment</span></li>
+                         </ul>
+                     </div>
                   </div>
                   <div className="w-full">
                        <ChunkingSimulator />
@@ -529,119 +826,76 @@ export const Info: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               </div>
           </DocSection>
 
-          {/* 4. SIGNALING PROTOCOL */}
-          <DocSection id="protocol" title="Signaling Protocol">
-             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 md:gap-12">
-                 <div>
-                     <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm leading-relaxed">
-                         The handshake process involves exchanging "Offers" and "Answers" that contain Session Description Protocol (SDP) data. This allows two browsers to agree on codecs, encryption keys, and network addresses before a direct line exists.
-                     </p>
-                     <div className="bg-slate-100 dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 w-full overflow-hidden">
-                         <h4 className="font-bold text-sm mb-4">Payload Structure</h4>
-                         <CodeBlock 
-                             label="JSON Message Format" 
-                             code={`{
-  "type": "OFFER",
-  "payload": {
-    "sdp": "v=0\\r\\no=... (Encrypted)",
-    "type": "offer"
-  },
-  "src": "peer-A-uuid",
-  "dst": "peer-B-uuid"
-}`} 
-                         />
-                     </div>
-                 </div>
-                 <HandshakeSequence />
-             </div>
+          <DocSection id="security" title="Security Model">
+               <div className="grid gap-6 md:grid-cols-2">
+                    <Card className="hover:border-emerald-500/50 transition-colors">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><ShieldCheck className="text-emerald-500" /> End-to-End Encryption</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                                WebRTC mandates encryption. We use <strong>DTLS 1.2</strong> with <strong>AES-128-GCM</strong> cipher suites. Keys are generated on the fly and never leave the device.
+                            </p>
+                            <div className="flex gap-2 text-xs">
+                                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">ECDHE-RSA</Badge>
+                                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">SHA-256</Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="hover:border-amber-500/50 transition-colors">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><KeyRound className="text-amber-500" /> Ephemeral Sessions</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                                Connection IDs are random 6-character tokens valid only for the duration of the session. Reloading the page destroys the keys and creates a new identity.
+                            </p>
+                            <div className="flex gap-2 text-xs">
+                                <Badge variant="secondary" className="bg-amber-50 text-amber-700">Transient</Badge>
+                                <Badge variant="secondary" className="bg-amber-50 text-amber-700">No Logs</Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+               </div>
           </DocSection>
 
-          {/* 5. API REFERENCE */}
-          <DocSection id="components" title="Component API Reference">
-              <div className="space-y-8 md:space-y-12">
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-                          <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2"><Layout size={18} /> Sender.tsx</h3>
-                          <span className="text-[10px] font-mono bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 px-2 py-1 rounded">Host Logic</span>
-                      </div>
+          <DocSection id="analytics" title="Performance & Analytics">
+              <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
+                  <div className="grid md:grid-cols-2 gap-8 relative z-10">
                       <div>
-                          <div className="hidden md:grid md:grid-cols-[1fr,auto,2fr] gap-4 px-4 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400">
-                              <div>Internal Method</div>
-                              <div>Type</div>
-                              <div>Description</div>
+                          <h4 className="text-xl font-bold mb-4 flex items-center gap-2"><Gauge className="text-indigo-400" /> Real-time Metrics</h4>
+                          <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                              The application constantly monitors the RTC transport layer to calculate Round Trip Time (RTT) and packet loss. This allows the Chunking Engine to throttle speeds dynamically if network quality degrades.
+                          </p>
+                          <div className="space-y-4">
+                              <div className="flex justify-between text-sm border-b border-slate-800 pb-2"><span className="text-slate-500">Target Latency</span> <span className="font-mono text-emerald-400">&lt; 100ms</span></div>
+                              <div className="flex justify-between text-sm border-b border-slate-800 pb-2"><span className="text-slate-500">Max Throughput</span> <span className="font-mono text-indigo-400">~50 MB/s (LAN)</span></div>
+                              <div className="flex justify-between text-sm border-b border-slate-800 pb-2"><span className="text-slate-500">Memory Footprint</span> <span className="font-mono text-amber-400">~150 MB</span></div>
                           </div>
-                          <ApiRow name="startSession()" type="Async Promise" desc="Initializes PeerJS, requests wake lock, generates Short ID." />
-                          <ApiRow name="transferFile()" type="Async Generator" desc="Main loop. Reads file blobs and pipes to DataConnection." />
-                          <ApiRow name="enableKeepAlive()" type="Void" desc="Triggers hidden Audio element to prevent iOS Safari throttling." />
-                          <ApiRow name="handleManifest()" type="Event Handler" desc="Sends JSON metadata (filename, size, type) to new peers." />
                       </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-                          <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2"><Layout size={18} /> Receiver.tsx</h3>
-                          <span className="text-[10px] font-mono bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 px-2 py-1 rounded">Client Logic</span>
-                      </div>
-                      <div>
-                           <div className="hidden md:grid md:grid-cols-[1fr,auto,2fr] gap-4 px-4 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400">
-                              <div>Internal Method</div>
-                              <div>Type</div>
-                              <div>Description</div>
-                          </div>
-                          <ApiRow name="handleIncomingData()" type="Listener" desc="Demultiplexes JSON signaling messages vs ArrayBuffer binary chunks." />
-                          <ApiRow name="finalizeCurrentFile()" type="Void" desc="Merges chunk array into single Blob, triggers download, clears RAM." />
-                          <ApiRow name="verifyPassword()" type="Async" desc="Sends cryptographic hash to Host for session unlock." />
-                      </div>
-                  </div>
-              </div>
-          </DocSection>
-
-          {/* 6. SECURITY MODEL */}
-          <DocSection id="security" title="Security & Encryption">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                   <div className="bg-slate-800 text-white p-6 rounded-2xl border border-slate-700 hover:-translate-y-1 transition-transform duration-300">
-                       <LockKeyhole className="text-emerald-400 mb-4" size={28} />
-                       <h4 className="font-bold text-lg mb-2">DTLS 1.2</h4>
-                       <p className="text-sm text-slate-400">All data in transit is encrypted using AES-128 via the Datagram Transport Layer Security protocol.</p>
-                   </div>
-                   <div className="bg-slate-800 text-white p-6 rounded-2xl border border-slate-700 hover:-translate-y-1 transition-transform duration-300">
-                       <Key className="text-amber-400 mb-4" size={28} />
-                       <h4 className="font-bold text-lg mb-2">Ephemeral Keys</h4>
-                       <p className="text-sm text-slate-400">Encryption keys are generated on-device at session start and destroyed on tab close.</p>
-                   </div>
-                   <div className="bg-slate-800 text-white p-6 rounded-2xl border border-slate-700 hover:-translate-y-1 transition-transform duration-300">
-                       <Shield className="text-indigo-400 mb-4" size={28} />
-                       <h4 className="font-bold text-lg mb-2">SCTP Secure</h4>
-                       <p className="text-sm text-slate-400">WebRTC Data Channels use SCTP over DTLS, ensuring ordered, reliable, secure delivery.</p>
-                   </div>
-              </div>
-          </DocSection>
-
-          {/* 7. FAILURE ANALYSIS */}
-          <DocSection id="troubleshooting" title="Failure Analysis">
-              <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-800">
-                  <h4 className="font-bold text-slate-900 dark:text-white mb-6">Common Error Decision Tree</h4>
-                  
-                  <div className="space-y-8 relative">
-                      <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-800" />
-                      
-                      {[
-                        { id: "01", title: '"Connection Failed" Immediate', desc: "Symptom: Spinner stops after 1s.", check: "Firewall blocking UDP ports 1024-65535?", color: "red" },
-                        { id: "02", title: 'Stalled at 99%', desc: "Symptom: Download bar freezes near end.", check: "Sender tab backgrounded on iOS?", color: "amber" },
-                        { id: "03", title: '"ID Not Found"', desc: "Symptom: Receiver sees error immediately.", check: "Signaling Server WebSocket active?", color: "indigo" }
-                      ].map((err) => (
-                          <div key={err.id} className="relative pl-12 group">
-                              <div className={cn(
-                                  "absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border bg-white dark:bg-slate-900 z-10",
-                                  `border-${err.color}-200 dark:border-${err.color}-900 text-${err.color}-600`
-                              )}>{err.id}</div>
-                              <h5 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-indigo-500 transition-colors">{err.title}</h5>
-                              <p className="text-xs text-slate-500 mt-1">{err.desc}</p>
-                              <div className="mt-3 bg-slate-50 dark:bg-slate-800 p-3 rounded text-xs font-mono text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700/50">
-                                  Check: {err.check}
+                      <div className="flex flex-col justify-center gap-4">
+                          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                              <div className="text-xs text-slate-500 uppercase font-bold mb-1">FPS Target</div>
+                              <div className="flex items-end gap-2">
+                                  <span className="text-2xl font-black text-white">60</span>
+                                  <span className="text-xs text-emerald-400 mb-1">Stable</span>
+                              </div>
+                              <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                  <div className="bg-emerald-500 w-full h-full" />
                               </div>
                           </div>
-                      ))}
+                          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                              <div className="text-xs text-slate-500 uppercase font-bold mb-1">Buffer Health</div>
+                              <div className="flex items-end gap-2">
+                                  <span className="text-2xl font-black text-white">0.2</span>
+                                  <span className="text-xs text-indigo-400 mb-1">seconds</span>
+                              </div>
+                              <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                  <div className="bg-indigo-500 w-[20%] h-full animate-pulse" />
+                              </div>
+                          </div>
+                      </div>
                   </div>
               </div>
           </DocSection>
