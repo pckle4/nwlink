@@ -141,10 +141,10 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-              <a href="https://github.com/nowhile" target="_blank" rel="noopener noreferrer" className={headerBtnClass} title="Star on GitHub">
+              <a href="https://github.com/pckle4/nwlink" target="_blank" rel="noopener noreferrer" className={headerBtnClass} title="Star on GitHub">
                   <Github size={scrolled ? 16 : 18} />
               </a>
-               <a href="mailto:feedback@nowhile.com" className={headerBtnClass} title="Send Feedback">
+               <a href="mailto:nowhile@icloud.com" className={headerBtnClass} title="Send Feedback">
                   <MessageCircle size={scrolled ? 16 : 18} />
               </a>
               <button
