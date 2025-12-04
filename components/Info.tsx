@@ -32,7 +32,7 @@ const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ classNa
 );
 
 const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({ className, children, ...props }) => (
-    <p className={cn("text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed", className)} {...props}>{children}
+    <p className={cn("text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed", className)} {...props}>{children}</p>
 );
 
 const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, children, ...props }) => (
