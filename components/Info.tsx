@@ -111,70 +111,77 @@ const ArchitectureDiagram = () => {
         return () => clearInterval(timer);
     }, []);
 
+    // Helper to calculate line classes based on step
+    const getLineClass = (activeStep: number) => 
+        cn("transition-all duration-700", step === activeStep ? "stroke-amber-500 opacity-100" : "stroke-slate-300 dark:stroke-slate-700 opacity-30");
+
     return (
         <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-4 md:p-6 border border-slate-200 dark:border-slate-800 relative flex flex-col items-center justify-center group w-full overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-700/50 transition-colors duration-500">
             <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
             
-            <div className="w-full overflow-x-auto custom-scrollbar pb-2">
-                <div className="min-w-[500px] md:min-w-[600px] px-4 md:px-8 mx-auto pt-8 md:pt-12 pb-4">
-                    <div className="flex justify-between items-end mb-8 md:mb-12 relative">
-                        {/* Connecting Lines (SVG) */}
-                        <svg className="absolute inset-0 w-full h-full -top-8 md:-top-12 pointer-events-none overflow-visible" viewBox="0 0 600 200" preserveAspectRatio="none">
-                            <path d="M 50 30 Q 300 -60 300 -40" fill="none" stroke={step === 1 ? "#f59e0b" : "#cbd5e1"} strokeWidth="2" strokeDasharray="5,5" className={cn("transition-colors duration-500", step === 1 && "animate-pulse")} />
-                            <path d="M 550 30 Q 300 -60 300 -40" fill="none" stroke={step === 1 ? "#f59e0b" : "#cbd5e1"} strokeWidth="2" strokeDasharray="5,5" className={cn("transition-colors duration-500", step === 1 && "animate-pulse")} />
-                        </svg>
-
-                        {/* Sender */}
-                        <div className="flex flex-col items-center gap-3 z-20 w-20 md:w-24">
-                            <div className={cn("w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl bg-white dark:bg-slate-800", step === 0 ? "border-indigo-500 scale-110 shadow-indigo-500/20" : "border-slate-200 dark:border-slate-700")}>
-                                <MonitorIcon className={cn("w-6 h-6 md:w-8 md:h-8", step === 0 ? "text-indigo-500" : "text-slate-400")} />
-                            </div>
-                            <div className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 text-center">Sender</div>
-                        </div>
-
-                        {/* Broker */}
-                        <div className="absolute left-1/2 -top-16 md:-top-24 -translate-x-1/2 flex flex-col items-center gap-2 z-10 w-28 md:w-32">
-                            <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border transition-all duration-500 bg-white dark:bg-slate-800", step === 1 ? "border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)] scale-110" : "border-slate-200 dark:border-slate-700")}>
-                                <Server size={18} className={step === 1 ? "text-amber-500" : "text-slate-400"} />
-                            </div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">Broker</div>
-                        </div>
-
-                        {/* Receiver */}
-                        <div className="flex flex-col items-center gap-3 z-20 w-20 md:w-24">
-                            <div className={cn("w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl bg-white dark:bg-slate-800", step === 2 ? "border-emerald-500 scale-110 shadow-emerald-500/20" : "border-slate-200 dark:border-slate-700")}>
-                                <MonitorIcon className={cn("w-6 h-6 md:w-8 md:h-8", step === 2 ? "text-emerald-500" : "text-slate-400")} />
-                            </div>
-                            <div className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 text-center">Receiver</div>
-                        </div>
+            {/* Diagram Container - Responsive Scaling */}
+            <div className="w-full relative h-[240px] md:h-[280px] max-w-md mx-auto my-4">
+                
+                {/* Broker (Top Center) */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-0 flex flex-col items-center gap-2 z-20">
+                     <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-500 bg-white dark:bg-slate-800 shadow-lg", step === 1 ? "border-amber-500 shadow-amber-500/20 scale-110" : "border-slate-200 dark:border-slate-700")}>
+                        <Server size={20} className={step === 1 ? "text-amber-500" : "text-slate-400"} />
                     </div>
-                    
-                    {/* Data Tunnel */}
-                    <div className="h-3 md:h-4 bg-slate-200 dark:bg-slate-800 rounded-full relative overflow-hidden mt-4 md:mt-8 shadow-inner mx-4 md:mx-8">
-                        <div className={cn("absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 transition-opacity duration-500", step === 3 ? "opacity-100 animate-shimmer" : "opacity-0")} />
-                        {step === 3 && (
-                            <>
-                                <div className="absolute top-1 left-0 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white shadow animate-packet" />
-                                <div className="absolute top-1 left-0 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white shadow animate-packet" style={{ animationDelay: '0.5s' }} />
-                                <div className="absolute top-1 left-0 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white shadow animate-packet" style={{ animationDelay: '1s' }} />
-                            </>
-                        )}
-                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">Broker</div>
                 </div>
+
+                {/* Sender (Bottom Left) */}
+                <div className="absolute left-0 bottom-8 flex flex-col items-center gap-2 z-20">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl bg-white dark:bg-slate-800", step === 0 ? "border-indigo-500 scale-110 shadow-indigo-500/20" : "border-slate-200 dark:border-slate-700")}>
+                        <MonitorIcon className={cn("w-7 h-7", step === 0 ? "text-indigo-500" : "text-slate-400")} />
+                    </div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Sender</div>
+                </div>
+
+                {/* Receiver (Bottom Right) */}
+                <div className="absolute right-0 bottom-8 flex flex-col items-center gap-2 z-20">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-xl bg-white dark:bg-slate-800", step === 2 ? "border-emerald-500 scale-110 shadow-emerald-500/20" : "border-slate-200 dark:border-slate-700")}>
+                        <MonitorIcon className={cn("w-7 h-7", step === 2 ? "text-emerald-500" : "text-slate-400")} />
+                    </div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Receiver</div>
+                </div>
+
+                {/* Connecting Lines SVG */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
+                    {/* Sender to Broker */}
+                    <path d="M 40 180 Q 40 60 50% 50" fill="none" strokeWidth="2" strokeDasharray="6,4" className={getLineClass(1)} />
+                    {/* Receiver to Broker */}
+                    <path d="M 100% 180 Q 100% 60 50% 50" fill="none" strokeWidth="2" strokeDasharray="6,4" className={getLineClass(1)} transform="translate(-40, 0)" />
+                    
+                    {/* P2P Tunnel (Direct) */}
+                    <path d="M 50 190 L 90% 190" fill="none" stroke={step === 3 ? "#6366f1" : "#cbd5e1"} strokeWidth={step === 3 ? "4" : "1"} className={cn("transition-all duration-500", step !== 3 && "opacity-20 dark:opacity-10")} />
+                    
+                    {/* Data Packets */}
+                    {step === 3 && (
+                        <>
+                            <circle r="4" fill="#fff" className="animate-packet">
+                                <animateMotion dur="1.5s" repeatCount="indefinite" path="M 50 190 L 90% 190" />
+                            </circle>
+                            <circle r="4" fill="#fff" className="animate-packet" style={{ animationDelay: '0.5s' }}>
+                                <animateMotion dur="1.5s" repeatCount="indefinite" path="M 50 190 L 90% 190" />
+                            </circle>
+                        </>
+                    )}
+                </svg>
             </div>
 
-            <div className="text-center mt-4 w-full px-4 max-w-lg mx-auto">
-                <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+            <div className="text-center mt-2 w-full px-4 max-w-lg mx-auto bg-slate-100 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-indigo-500 mb-1">
                     {step === 0 && "Step 1: Init"}
-                    {step === 1 && "Step 2: Signaling (SDP Exchange)"}
-                    {step === 2 && "Step 3: ICE Candidate Check"}
-                    {step === 3 && "Step 4: P2P Data Tunnel (Active)"}
+                    {step === 1 && "Step 2: Signaling"}
+                    {step === 2 && "Step 3: Traversal"}
+                    {step === 3 && "Step 4: P2P Tunnel"}
                 </div>
-                <p className="text-xs md:text-sm text-slate-400">
-                    {step === 0 && "Sender creates a specialized Offer."}
-                    {step === 1 && "Metadata is swapped via WebSocket."}
-                    {step === 2 && "Best network path is negotiated."}
-                    {step === 3 && "Direct, encrypted binary stream."}
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {step === 0 && "Sender initializes session & generates Offer."}
+                    {step === 1 && "Broker exchanges metadata (SDP)."}
+                    {step === 2 && "Peers find path via STUN (ICE)."}
+                    {step === 3 && "Direct, encrypted stream established."}
                 </p>
             </div>
         </div>
@@ -183,42 +190,51 @@ const ArchitectureDiagram = () => {
 
 const HandshakeSequence = () => {
     return (
-        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-white font-mono text-xs relative overflow-hidden group shadow-2xl">
-            <div className="overflow-x-auto custom-scrollbar pb-2">
-                 <div className="min-w-[450px] px-2">
-                    <div className="flex justify-between mb-4 border-b border-slate-700 pb-2">
-                        <span className="text-indigo-400 font-bold w-1/3">HOST</span>
-                        <span className="text-slate-500 font-bold w-1/3 text-center">SIGNALING</span>
-                        <span className="text-emerald-400 font-bold w-1/3 text-right">PEER</span>
+        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 text-white font-mono text-[10px] md:text-xs relative overflow-hidden group shadow-2xl w-full">
+            <div className="w-full">
+                <div className="flex justify-between mb-4 border-b border-slate-700 pb-2 px-2">
+                    <span className="text-indigo-400 font-bold w-1/4">HOST</span>
+                    <span className="text-slate-500 font-bold w-2/4 text-center">BROKER</span>
+                    <span className="text-emerald-400 font-bold w-1/4 text-right">PEER</span>
+                </div>
+                <div className="space-y-3 relative px-1">
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-800 -translate-x-1/2" />
+                    
+                    <div className="flex justify-between items-center relative z-10">
+                        <div className="w-1/4 text-right pr-2"><span className="text-indigo-300 bg-indigo-900/40 px-1 rounded">Connect</span></div>
+                        <div className="w-2/4 text-center"><div className="w-1.5 h-1.5 bg-slate-600 rounded-full mx-auto" /></div>
+                        <div className="w-1/4"></div>
                     </div>
-                    <div className="space-y-4 relative">
-                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-800 -translate-x-1/2" />
-                        <div className="flex justify-between items-center group">
-                            <div className="w-1/3 text-right pr-4"><span className="bg-indigo-900/50 px-2 py-1 rounded text-indigo-300 border border-indigo-500/30">Connect</span></div>
-                            <div className="w-1/3 text-center z-10"><div className="w-2 h-2 bg-slate-600 rounded-full mx-auto" /></div>
-                            <div className="w-1/3 pl-4 opacity-50">...</div>
-                        </div>
-                        <div className="flex justify-between items-center group">
-                            <div className="w-1/3 text-right pr-4 opacity-50">...</div>
-                            <div className="w-1/3 text-center z-10"><div className="w-2 h-2 bg-slate-600 rounded-full mx-auto" /></div>
-                            <div className="w-1/3 text-right pl-4 flex justify-end"><span className="bg-emerald-900/50 px-2 py-1 rounded text-emerald-300 border border-emerald-500/30">Connect</span></div>
-                        </div>
-                        <div className="flex justify-between items-center relative group">
-                            <div className="absolute left-1/3 right-1/3 top-1/2 h-px bg-indigo-500/50" />
-                            <div className="w-1/3 text-right pr-4"><span className="text-amber-400 font-bold">OFFER</span> &rarr;</div>
-                            <div className="w-1/3 text-center z-10"><div className="w-3 h-3 bg-amber-500 rounded-full mx-auto animate-pulse" /></div>
-                            <div className="w-1/3 pl-4 opacity-50">&rarr;</div>
-                        </div>
-                        <div className="flex justify-between items-center relative group">
-                            <div className="absolute left-1/3 right-1/3 top-1/2 h-px bg-emerald-500/50" />
-                            <div className="w-1/3 text-right pr-4 opacity-50">&larr;</div>
-                            <div className="w-1/3 text-center z-10"><div className="w-3 h-3 bg-emerald-500 rounded-full mx-auto animate-pulse" /></div>
-                            <div className="w-1/3 pl-4">&larr; <span className="text-amber-400 font-bold">ANSWER</span></div>
-                        </div>
-                        <div className="flex justify-center py-4">
-                            <span className="bg-slate-800 border border-slate-600 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold text-slate-300">P2P ESTABLISHED</span>
-                        </div>
+
+                    <div className="flex justify-between items-center relative z-10">
+                        <div className="w-1/4"></div>
+                        <div className="w-2/4 text-center"><div className="w-1.5 h-1.5 bg-slate-600 rounded-full mx-auto" /></div>
+                        <div className="w-1/4 text-left pl-2"><span className="text-emerald-300 bg-emerald-900/40 px-1 rounded">Join</span></div>
                     </div>
+
+                    <div className="flex justify-between items-center relative z-10">
+                        <div className="w-1/4 text-right pr-2 font-bold text-amber-500">OFFER &rarr;</div>
+                        <div className="w-2/4 text-center flex items-center justify-center">
+                            <div className="h-px w-full bg-slate-700 absolute -z-10" />
+                            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                        </div>
+                        <div className="w-1/4 text-left pl-2 opacity-50">&rarr;</div>
+                    </div>
+
+                    <div className="flex justify-between items-center relative z-10">
+                        <div className="w-1/4 text-right pr-2 opacity-50">&larr;</div>
+                        <div className="w-2/4 text-center flex items-center justify-center">
+                             <div className="h-px w-full bg-slate-700 absolute -z-10" />
+                             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        </div>
+                        <div className="w-1/4 text-left pl-2 font-bold text-emerald-500">&larr; ANSWER</div>
+                    </div>
+                </div>
+                
+                <div className="mt-4 pt-3 border-t border-slate-700 text-center">
+                     <span className="bg-emerald-900/30 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full text-[9px] font-bold tracking-wider">
+                         P2P CONNECTION ESTABLISHED
+                     </span>
                 </div>
             </div>
         </div>
@@ -255,22 +271,22 @@ const ChunkingSimulator = () => {
     }, []);
 
     const getBufferColor = (val: number) => {
-        if (val < 50) return "bg-emerald-500";
-        if (val < 80) return "bg-amber-500";
-        return "bg-red-500";
+        if (val < 50) return "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]";
+        if (val < 80) return "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]";
+        return "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse";
     };
 
     return (
-        <div className="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border border-slate-800 shadow-2xl group hover:border-slate-700 transition-colors w-full overflow-hidden">
+        <div className="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border border-slate-800 shadow-2xl group hover:border-slate-700 transition-colors w-full overflow-hidden flex flex-col h-full">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 shrink-0"><Cpu size={20} /></div>
                     <div className="min-w-0">
                         <h3 className="font-bold truncate text-sm md:text-base">Chunking Engine</h3>
-                        <div className="text-[10px] text-slate-400 font-mono truncate">MODE: {isRunning ? 'ACTIVE' : 'IDLE'}</div>
+                        <div className="text-[10px] text-slate-400 font-mono truncate">STATUS: {isRunning ? 'PROCESSING' : 'IDLE'}</div>
                     </div>
                 </div>
-                <button onClick={toggle} className="p-3 rounded-full bg-white text-slate-900 hover:bg-indigo-50 transition-colors transform active:scale-95 shrink-0">
+                <button onClick={toggle} className="p-3 rounded-full bg-white text-slate-900 hover:bg-indigo-50 transition-colors transform active:scale-95 shrink-0 shadow-lg">
                     {isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
                 </button>
             </div>
@@ -278,56 +294,63 @@ const ChunkingSimulator = () => {
             <div className="flex flex-col gap-6">
                 {/* Visualizer Track */}
                 <div className="relative bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 overflow-hidden">
-                    <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2">
+                    <div className="flex items-center gap-2 md:gap-4 justify-between">
                         {/* Source File */}
-                        <div className="w-12 h-16 border-2 border-slate-600 rounded bg-slate-700 flex flex-col items-center justify-center shrink-0 relative">
-                            <FileCode size={16} className="text-slate-400 mb-1" />
-                            <span className="text-[8px] font-mono text-slate-400">FILE</span>
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                             <div className="w-10 h-12 md:w-12 md:h-16 border-2 border-slate-600 rounded bg-slate-700 flex flex-col items-center justify-center relative shadow-lg">
+                                <FileCode size={16} className="text-slate-400 mb-1" />
+                                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full animate-ping" style={{ display: isRunning ? 'block' : 'none' }} />
+                            </div>
+                            <span className="text-[9px] font-bold text-slate-500 tracking-wider">SOURCE</span>
                         </div>
                         
                         {/* Stream */}
-                        <div className="flex-1 h-12 bg-slate-900/50 rounded border border-slate-700/30 relative overflow-hidden flex items-center px-2 gap-2 min-w-[120px]">
+                        <div className="flex-1 h-12 bg-slate-950/50 rounded border border-slate-800/50 relative overflow-hidden flex items-center px-2 gap-2 mx-2">
+                             <div className="absolute inset-0 flex items-center justify-center text-[9px] font-mono text-slate-700 pointer-events-none">DATA STREAM</div>
                              {chunks.map((_, i) => (
-                                 <div key={i} className="w-3 h-6 bg-indigo-500 rounded shadow-lg animate-slide-right shrink-0" />
+                                 <div key={i} className="w-2 h-6 md:w-3 md:h-6 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-sm shadow-lg animate-slide-right shrink-0" />
                              ))}
-                             {chunks.length === 0 && <span className="text-[9px] text-slate-600 absolute left-2">Stream Idle</span>}
                         </div>
 
                         {/* Buffer Tank */}
-                        <div className="w-14 h-16 border-2 border-slate-600 rounded bg-slate-800 flex flex-col justify-end relative overflow-hidden shrink-0">
-                             <div className={cn("w-full transition-all duration-200 opacity-80", getBufferColor(buffer))} style={{ height: `${buffer}%` }} />
-                             <div className="absolute inset-0 flex items-center justify-center font-bold text-[10px] mix-blend-difference z-10">{Math.round(buffer)}%</div>
-                             <div className="absolute -bottom-0 left-0 right-0 text-center text-[8px] bg-black/20 font-mono text-slate-400">MEM</div>
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                            <div className="w-12 h-12 md:w-14 md:h-16 border-2 border-slate-600 rounded bg-slate-800 flex flex-col justify-end relative overflow-hidden shadow-inner">
+                                <div className={cn("w-full transition-all duration-200 opacity-90", getBufferColor(buffer))} style={{ height: `${buffer}%` }} />
+                                <div className="absolute inset-0 flex items-center justify-center font-bold text-[9px] md:text-[10px] text-white mix-blend-difference z-10">{Math.round(buffer)}%</div>
+                            </div>
+                             <span className="text-[9px] font-bold text-slate-500 tracking-wider">BUFFER</span>
                         </div>
                     </div>
                 </div>
 
+                {/* Explanatory Legend */}
+                <div className="grid grid-cols-3 gap-2 text-[10px] md:text-xs">
+                     <div className="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                         <div className="font-bold text-slate-300 mb-1">Source</div>
+                         <div className="text-slate-500 leading-tight">Original file on disk</div>
+                     </div>
+                     <div className="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                         <div className="font-bold text-indigo-300 mb-1">Stream</div>
+                         <div className="text-slate-500 leading-tight">16KB chunks in transit</div>
+                     </div>
+                     <div className="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                         <div className={cn("font-bold mb-1", buffer > 80 ? "text-red-400" : "text-emerald-400")}>{buffer > 80 ? "Wait" : "Flow"}</div>
+                         <div className="text-slate-500 leading-tight">{buffer > 80 ? "Backpressure Active" : "Memory Optimal"}</div>
+                     </div>
+                </div>
+
                 {/* Stats Panel */}
-                <div className="bg-black/20 rounded-xl p-4 font-mono text-[10px] md:text-xs space-y-2 border border-white/5">
-                    <div className="flex justify-between border-b border-white/5 pb-2">
-                        <span className="text-slate-400">STATUS</span>
-                        <span className={isRunning ? "text-emerald-400" : "text-amber-400"}>{isRunning ? "RUNNING" : "PAUSED"}</span>
+                <div className="bg-black/30 rounded-xl p-3 font-mono text-[9px] md:text-[10px] space-y-1.5 border border-white/5">
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">CHUNK_SIZE</span>
+                        <span className="text-indigo-400">16 KB (Fixed)</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-slate-400">CHUNK_SIZE</span>
-                        <span className="text-indigo-400">16 KB</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-slate-400">TRANSFERRED</span>
+                        <span className="text-slate-500">TRANSFERRED</span>
                         <span className="text-white">{transferred} KB</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-slate-400">BACKPRESSURE</span>
-                        <span className={buffer > 80 ? "text-red-500 font-bold animate-pulse" : "text-emerald-500"}>
-                            {buffer > 80 ? "THROTTLING" : "NOMINAL"}
-                        </span>
                     </div>
                 </div>
             </div>
-            
-            <p className="text-xs text-slate-400 leading-relaxed mt-4">
-                <strong>Mechanism:</strong> The engine pauses reading when the buffer exceeds 80% capacity to prevent browser crashes (`await waitForBuffer`).
-            </p>
         </div>
     );
 };
