@@ -52,6 +52,7 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
   const [copied, setCopied] = useState(false);
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const wakeLockRef = useRef<any>(null);
@@ -61,13 +62,15 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
   const passwordRef = useRef('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const downloadLimitRef = useRef<number | ''>('');
+  const isUnlimitedDownloadsRef = useRef(true);
 
   useEffect(() => { filesRef.current = hostedFiles; }, [hostedFiles]);
   useEffect(() => { activeTransfersRef.current = activeTransfers; }, [activeTransfers]);
   useEffect(() => { passwordRef.current = password; }, [password]);
+  useEffect(() => { downloadLimitRef.current = downloadLimit; }, [downloadLimit]);
+  useEffect(() => { isUnlimitedDownloadsRef.current = isUnlimitedDownloads; }, [isUnlimitedDownloads]);
   
-  // Removed auto-scroll useEffect to prevent screen jumping
-
   useEffect(() => {
       setFileStats(prev => {
           const next = { ...prev };
@@ -111,6 +114,19 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
   };
 
   const transferFile = async (connId: string, peerId: string, fileId: string) => {
+      // Check limit before starting (extra safety for concurrent requests)
+      const currentDownloads = totalDownloadsRef.current;
+      const limitConfig = isUnlimitedDownloadsRef.current ? Infinity : Number(downloadLimitRef.current);
+      
+      if (limitConfig !== Infinity && currentDownloads >= limitConfig) {
+          // Send error or just ignore? Best to ignore or close.
+          // In this architecture, we just don't start. 
+          // The component might already be unmounted if handleStopSharing was called, 
+          // but if we are in the race condition window:
+          handleStopSharing('limit');
+          return;
+      }
+
       if (activeTransfersRef.current.some(t => t.connectionId === connId && t.fileId === fileId && t.status !== 'completed')) return;
       const hostFile = filesRef.current.find(f => f.id === fileId);
       if (!hostFile) return;
@@ -162,8 +178,8 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
           const newDownloadCount = (totalDownloadsRef.current as number) + 1;
           totalDownloadsRef.current = newDownloadCount;
 
-          const limit = isUnlimitedDownloads ? Infinity : Number(downloadLimit);
-          if (limit !== Infinity && newDownloadCount >= limit) {
+          // Check limit after download
+          if (limitConfig !== Infinity && newDownloadCount >= limitConfig) {
               setTimeout(() => handleStopSharing('limit'), 1000);
           }
           setTimeout(() => setActiveTransfers(prev => prev.filter(t => !(t.connectionId === connId && t.fileId === fileId))), 3000);
@@ -207,7 +223,7 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
     peerService.on('connection', handleConnection);
     peerService.on('data', handleData);
     return () => { peerService.off('connection', handleConnection); peerService.off('data', handleData); };
-  }, [activeTab]); // Re-bind if configs change significantly, though Refs handle most
+  }, [activeTab]);
 
   const startSession = async () => {
     setIsStarting(true);
@@ -250,6 +266,28 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
     if (e.target.files && e.target.files.length > 0) {
         setHostedFiles(prev => [...prev, ...Array.from(e.target.files!).map((f: File) => ({ id: Math.random().toString(36).substring(2, 9), file: f, uploadTime: Date.now() }))]);
     }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          setHostedFiles(prev => [...prev, ...Array.from(e.dataTransfer.files).map((f: File) => ({ 
+              id: Math.random().toString(36).substring(2, 9), 
+              file: f, 
+              uploadTime: Date.now() 
+          }))]);
+      }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
   };
 
   const removeFile = (id: string) => {
@@ -299,7 +337,12 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
   // --- DROPZONE VIEW ---
   if (hostedFiles.length === 0) {
     return (
-      <div className="w-full max-w-4xl mx-auto animate-fade-in text-center px-4">
+      <div 
+        className="w-full max-w-4xl mx-auto animate-fade-in text-center px-4"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <h1 className="text-4xl md:text-6xl font-black mb-4 text-slate-900 dark:text-white tracking-tight leading-tight">
           Share files <br />
           <span className="relative inline-block mt-2">
@@ -312,9 +355,19 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
         <div className="w-full max-w-xl mx-auto relative z-20">
              <label className="block group cursor-pointer transform-gpu transition-all duration-300 ease-out active:scale-95 mb-6">
                  <input type="file" multiple onChange={handleFileSelect} className="hidden" />
-                 <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 md:p-14 border-2 border-dashed border-indigo-100 dark:border-indigo-900/30 group-hover:border-indigo-500 dark:group-hover:border-indigo-500 transition-all duration-300 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] dark:shadow-none group-hover:shadow-xl group-hover:-translate-y-1 transform-gpu">
-                      <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl flex items-center justify-center mx-auto mb-6 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300 ease-out"><Cloud size={40} strokeWidth={1.5} /></div>
-                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Upload a file</h3>
+                 <div className={cn(
+                     "bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 md:p-14 border-2 border-dashed transition-all duration-300 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] dark:shadow-none transform-gpu",
+                     isDragging 
+                        ? "border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 scale-105" 
+                        : "border-indigo-100 dark:border-indigo-900/30 group-hover:border-indigo-500 dark:group-hover:border-indigo-500 group-hover:shadow-xl group-hover:-translate-y-1"
+                 )}>
+                      <div className={cn(
+                          "w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 ease-out",
+                          isDragging ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 scale-110" : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110"
+                      )}>
+                          <Cloud size={40} strokeWidth={1.5} className={cn(isDragging && "animate-bounce")} />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{isDragging ? 'Drop to Add' : 'Upload a file'}</h3>
                       <p className="text-slate-400 dark:text-slate-500 mb-6">Drag and drop here, or click to browse.</p>
                       <div className="inline-block px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700/50 text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Unlimited Size • Direct P2P</div>
                  </div>
@@ -334,10 +387,27 @@ export const Sender: React.FC<SenderProps> = ({ onToast }) => {
   // --- STAGING / REVIEW VIEW ---
   if (!shareLink) {
     return (
-        <div className="w-full max-w-2xl mx-auto animate-slide-up px-4">
+        <div 
+            className="w-full max-w-2xl mx-auto animate-slide-up px-4"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-6 text-center">Ready to Share</h2>
             
-            <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
+            <div className={cn(
+                "bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl border overflow-hidden mb-6 transition-all duration-300",
+                isDragging ? "border-indigo-500 ring-4 ring-indigo-500/10 scale-[1.02]" : "border-slate-100 dark:border-slate-700"
+            )}>
+                {isDragging && (
+                    <div className="absolute inset-0 z-50 bg-indigo-500/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl border border-indigo-200 dark:border-indigo-800 flex flex-col items-center animate-bounce">
+                            <Cloud size={48} className="text-indigo-500 mb-2" />
+                            <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400">Drop to Add Files</span>
+                        </div>
+                    </div>
+                )}
+
                 <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">{hostedFiles.length}</div>
